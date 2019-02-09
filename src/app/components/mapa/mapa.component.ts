@@ -1,13 +1,15 @@
 import { Marcador } from './../../classes/marcador.class';
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material';
+import { MatDialog, MatDialogRef } from '@angular/material';
+import { MapaEditarComponent } from './mapa-editar.component';
 
 @Component({
   selector: 'app-mapa',
   templateUrl: './mapa.component.html',
   styleUrls: ['./mapa.component.css']
 })
-export class MapaComponent implements OnInit {
+export class MapaComponent {
 
   marcadores: Marcador[] = [];
 
@@ -16,16 +18,13 @@ export class MapaComponent implements OnInit {
 
   snackBar: any;
 
-  constructor(public snackbar: MatSnackBar) { 
-    /* const nuevoMarcador = new Marcador(51.678418, 7.809007);
-    this.marcadores.push(nuevoMarcador); */
+  constructor(public snackbar: MatSnackBar,
+              public dialog: MatDialog) { 
+
     if (localStorage.getItem('marcadores')) {
       this.marcadores = JSON.parse(localStorage.getItem('marcadores'));
       this.snackBar = snackbar;
     }
-  }
-
-  ngOnInit() {
   }
 
   agregarMarcador(event) {
@@ -40,6 +39,23 @@ export class MapaComponent implements OnInit {
     this.marcadores.splice(position, 1);
     this.guardarStorage();
     this.snackBar.open('Marcador borrado.', 'Cerrar', { duration: 3000 });
+  }
+
+  editarMarcador(marcador: Marcador) {
+    const dialogRef = this.dialog.open(MapaEditarComponent, {
+      width: '250px',
+      data: {titulo: marcador.titulo, desc: marcador.desc}
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+        if (!result.titulo && !result.desc) {
+          return;
+        }
+        marcador.titulo = result.titulo;
+        marcador.desc = result.desc;
+        this.guardarStorage();
+        this.snackBar.open('Marcador actualizado.', 'Cerrar', { duration: 3000 });
+    });
   }
 
   guardarStorage() {
